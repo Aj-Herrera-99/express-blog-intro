@@ -30,28 +30,45 @@ app.get("/", (req, res) => {
 });
 
 app.get("/bacheca", (req, res) => {
-    const target = queryId(req, posts.cibi);
-    if(target){
+    const target = queryString(req, posts.cibi);
+    // se target è un elemento non nullo
+    // il server risponde mandando un json degli elementi 
+    // che corrispondono alla query string
+    if (target) {
         res.json(target);
         return;
-    } 
+    }
+    // se target è null, il server risponde mandando l'intero json
     res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
 });
 
-function queryId(req, list){
-    
-    const id = req.query.id;
-    let objTarget = null;
-    if (id) {
-        objTarget = list.find((obj) => {
-            return obj.id == id;
-        });
-        if (objTarget) {
-            return objTarget;
+function queryString(req, list) {
+    // prendo l'intero oggetto della query
+    const query = req.query;
+    // prendo solo la prima key dell'oggetto query
+    const keyTarget = Object.keys(query)[0];
+    // converto in un array ordinato la value della key target di query
+    const valueTargetQuery = convertToSortedArr(query[keyTarget]);
+    // creo un array filtrando gli elementi la cui key/value combacia con la prima key/value della query
+    const objTargets = list.filter((obj) => {
+        // converto in un array ordinato la value della key target per ogni elemento di list
+        let valueTargetList = convertToSortedArr(obj[keyTarget]);
+        // confronto dei due array convertiti in stringa
+        // se sono uguali, l'elemento fara parte degli elementi di objTargets
+        if (valueTargetList.join() === valueTargetQuery.join()) {
+            return obj;
         }
-    }
-    return null;
+    });
+    return objTargets.length ? objTargets : null;
 }
+
+function convertToSortedArr(element) {
+    // converto in un array ordinato il parametro passato
+    // NB: che sia primitivo o un array, il ritorno è cmq un array ordinato
+    return [].concat(element).sort();
+}
+
+
 
 app.get("/ciambella", (req, res) => {
     res.send(`<img src="images/ciambellone.jpeg">`);
