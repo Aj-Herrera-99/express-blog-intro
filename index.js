@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 app.get("/bacheca", (req, res) => {
     // se la query string ha un ultimo parametro "filter=heavy" verra fatto un filtraggio pesante
     // vedere funzione di queryString
-    const target = queryString(req, posts.cibi);
+    const target = dataFiltered(req, posts.cibi);
     // se target è un elemento non nullo
     // il server risponde mandando un json degli elementi
     // che corrispondono alla query string
@@ -45,12 +45,13 @@ app.get("/bacheca", (req, res) => {
     res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
 });
 
-function queryString(req, list) {
+function dataFiltered(req, list) {
     // prendo l'intero oggetto della query
     const query = req.query;
     console.log(query);
     // se l'oggetto è vuoto ritorna null
     if (!Object.keys(query).length) return null;
+
     // prendo solo la prima key dell'oggetto query
     const keyTarget = Object.keys(query)[0];
     // converto in un array ordinato la value della key target di query
@@ -61,18 +62,12 @@ function queryString(req, list) {
         // filtraggio "leggero" --> basta che solo uno dei valori della query combaci
         // con uno dei valori di un oggetto della list e il server lo manda
         objTargets = list.filter((obj) => {
-            let isPresent = false;
             let valueTargetList = convertToSortedArr(obj[keyTarget]);
-            for (let i = 0; i < valueTargetQuery.length && !isPresent; i++) {
-                isPresent = valueTargetList.some((el) => {
-                    return el == valueTargetQuery[i];
-                });
-            }
-            return isPresent;
+            return valueTargetList.join().toLowerCase().includes(valueTargetQuery.join().toLowerCase());
         });
-    } 
-    // filtraggio "pesante" --> tutti i valori della query devono combaciare 
-    // (anche per numero) con i valori di un oggetto della list per far si che il 
+    }
+    // filtraggio "pesante" --> tutti i valori della query devono combaciare
+    // (anche per numero) con i valori di un oggetto della list per far si che il
     // server lo mandi
     else {
         console.log("heavy");
@@ -82,12 +77,10 @@ function queryString(req, list) {
             let valueTargetList = convertToSortedArr(obj[keyTarget]);
             // confronto dei due array convertiti in stringa
             // se sono uguali, l'elemento fara parte degli elementi di objTargets
-            if (
+            return (
                 valueTargetList.join().toLowerCase() ===
                 valueTargetQuery.join().toLowerCase()
-            ) {
-                return obj;
-            }
+            );
         });
     }
     console.log(objTargets);
