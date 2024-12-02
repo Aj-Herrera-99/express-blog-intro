@@ -30,22 +30,28 @@ app.get("/", (req, res) => {
 });
 
 app.get("/bacheca", (req, res) => {
-    const ciboTitolo = req.query.titolo;
-    console.log(ciboTitolo);
-    let ciboCercato = null;
-    if (ciboTitolo) {
-        ciboCercato = posts.cibi.find((cibo) => {
-            console.log(cibo.titolo.toLowerCase());
-            return cibo.titolo.toLowerCase() == ciboTitolo.toLocaleLowerCase();
-        });
-        console.log(ciboCercato);
-        if (ciboCercato) {
-            res.json(ciboCercato);
-            return
-        }
-    }
+    const target = queryId(req, posts.cibi);
+    if(target){
+        res.json(target);
+        return;
+    } 
     res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
 });
+
+function queryId(req, list){
+    
+    const id = req.query.id;
+    let objTarget = null;
+    if (id) {
+        objTarget = list.find((obj) => {
+            return obj.id == id;
+        });
+        if (objTarget) {
+            return objTarget;
+        }
+    }
+    return null;
+}
 
 app.get("/ciambella", (req, res) => {
     res.send(`<img src="images/ciambellone.jpeg">`);
