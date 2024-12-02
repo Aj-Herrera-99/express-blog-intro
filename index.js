@@ -30,6 +30,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/bacheca", (req, res) => {
+    // se la query string ha un ultimo parametro "filter=heavy" verra fatto un filtraggio pesante
+    // vedere funzione di queryString
     const target = queryString(req, posts.cibi);
     // se target è un elemento non nullo
     // il server risponde mandando un json degli elementi
@@ -73,6 +75,7 @@ function queryString(req, list) {
     // (anche per numero) con i valori di un oggetto della list per far si che il 
     // server lo mandi
     else {
+        console.log("heavy");
         // creo un array filtrando gli elementi la cui key/value combacia con la prima key/value della query
         objTargets = list.filter((obj) => {
             // converto in un array ordinato la value della key target per ogni elemento di list
