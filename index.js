@@ -14,7 +14,16 @@ const PORT = 3000;
 const posts = require("./assets/db/posts");
 
 app.get("/", (req, res) => {
-    res.send(`<h1>Server del mio blog</h1>`);
+    res.send(`<h1>Server del mio blog</h1>
+        <h2>endpoints:</h2>
+        <ul>
+            <li>bacheca</li>
+            <li>ciambella</li>
+            <li>cracker</li>
+            <li>pane</li>
+            <li>pasta</li>
+            <li>torta</li>
+        </ul>`);
 });
 
 app.get("/bacheca", (req, res) => {
