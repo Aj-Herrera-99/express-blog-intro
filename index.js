@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 app.get("/bacheca", (req, res) => {
     const target = queryString(req, posts.cibi);
     // se target è un elemento non nullo
-    // il server risponde mandando un json degli elementi 
+    // il server risponde mandando un json degli elementi
     // che corrispondono alla query string
     if (target) {
         res.json(target);
@@ -48,21 +48,45 @@ function queryString(req, list) {
     const query = req.query;
     console.log(query);
     // se l'oggetto è vuoto ritorna null
-    if(!Object.keys(query).length) return null;
+    if (!Object.keys(query).length) return null;
     // prendo solo la prima key dell'oggetto query
     const keyTarget = Object.keys(query)[0];
     // converto in un array ordinato la value della key target di query
     const valueTargetQuery = convertToSortedArr(query[keyTarget]);
-    // creo un array filtrando gli elementi la cui key/value combacia con la prima key/value della query
-    const objTargets = list.filter((obj) => {
-        // converto in un array ordinato la value della key target per ogni elemento di list
-        let valueTargetList = convertToSortedArr(obj[keyTarget]);
-        // confronto dei due array convertiti in stringa
-        // se sono uguali, l'elemento fara parte degli elementi di objTargets
-        if (valueTargetList.join().toLowerCase() === valueTargetQuery.join().toLowerCase()) {
-            return obj;
-        }
-    });
+
+    let objTargets = [];
+    if (!(query["filter"] === "heavy")) {
+        // filtraggio "leggero" --> basta che solo uno dei valori della query combaci
+        // con uno dei valori di un oggetto della list e il server lo manda
+        objTargets = list.filter((obj) => {
+            let isPresent = false;
+            let valueTargetList = convertToSortedArr(obj[keyTarget]);
+            for (let i = 0; i < valueTargetQuery.length && !isPresent; i++) {
+                isPresent = valueTargetList.some((el) => {
+                    return el == valueTargetQuery[i];
+                });
+            }
+            return isPresent;
+        });
+    } 
+    // filtraggio "pesante" --> tutti i valori della query devono combaciare 
+    // (anche per numero) con i valori di un oggetto della list per far si che il 
+    // server lo mandi
+    else {
+        // creo un array filtrando gli elementi la cui key/value combacia con la prima key/value della query
+        objTargets = list.filter((obj) => {
+            // converto in un array ordinato la value della key target per ogni elemento di list
+            let valueTargetList = convertToSortedArr(obj[keyTarget]);
+            // confronto dei due array convertiti in stringa
+            // se sono uguali, l'elemento fara parte degli elementi di objTargets
+            if (
+                valueTargetList.join().toLowerCase() ===
+                valueTargetQuery.join().toLowerCase()
+            ) {
+                return obj;
+            }
+        });
+    }
     console.log(objTargets);
     return objTargets.length ? objTargets : null;
 }
@@ -72,8 +96,6 @@ function convertToSortedArr(element) {
     // NB: che sia primitivo o un array, il ritorno è cmq un array ordinato
     return [].concat(element).sort();
 }
-
-
 
 app.get("/ciambella", (req, res) => {
     res.send(`<img src="images/ciambellone.jpeg">`);
