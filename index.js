@@ -38,6 +38,7 @@ app.get("/bacheca", (req, res) => {
         res.json(target);
         return;
     }
+    console.log("test");
     // se target è null, il server risponde mandando l'intero json
     res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
 });
@@ -45,23 +46,24 @@ app.get("/bacheca", (req, res) => {
 function queryString(req, list) {
     // prendo l'intero oggetto della query
     const query = req.query;
+    console.log(query);
+    // se l'oggetto è vuoto ritorna null
+    if(!Object.keys(query).length) return null;
     // prendo solo la prima key dell'oggetto query
     const keyTarget = Object.keys(query)[0];
     // converto in un array ordinato la value della key target di query
     const valueTargetQuery = convertToSortedArr(query[keyTarget]);
-    console.log(valueTargetQuery);
     // creo un array filtrando gli elementi la cui key/value combacia con la prima key/value della query
     const objTargets = list.filter((obj) => {
         // converto in un array ordinato la value della key target per ogni elemento di list
         let valueTargetList = convertToSortedArr(obj[keyTarget]);
-        console.log(valueTargetList);
         // confronto dei due array convertiti in stringa
         // se sono uguali, l'elemento fara parte degli elementi di objTargets
         if (valueTargetList.join().toLowerCase() === valueTargetQuery.join().toLowerCase()) {
-            console.log(" e uguale");
             return obj;
         }
     });
+    console.log(objTargets);
     return objTargets.length ? objTargets : null;
 }
 
