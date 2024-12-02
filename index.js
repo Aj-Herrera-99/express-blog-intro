@@ -8,12 +8,20 @@
  */
 const express = require("express");
 const app = express();
+app.use(express.static("public"));
 const PORT = 3000;
+
+const posts = require("./public/db/posts");
 
 app.get("/", (req, res) => {
     res.send(`<h1>Server del mio blog</h1>`);
-})
+});
+
+app.get("/bacheca", (req, res) => {
+    console.log(posts.dolci.length);
+    res.json([{ quantità: posts.dolci.length }].concat(posts.dolci));
+});
 
 app.listen(PORT, () => {
     console.log("Server aperto");
-})
+});
