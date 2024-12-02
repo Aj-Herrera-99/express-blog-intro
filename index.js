@@ -49,13 +49,16 @@ function queryString(req, list) {
     const keyTarget = Object.keys(query)[0];
     // converto in un array ordinato la value della key target di query
     const valueTargetQuery = convertToSortedArr(query[keyTarget]);
+    console.log(valueTargetQuery);
     // creo un array filtrando gli elementi la cui key/value combacia con la prima key/value della query
     const objTargets = list.filter((obj) => {
         // converto in un array ordinato la value della key target per ogni elemento di list
         let valueTargetList = convertToSortedArr(obj[keyTarget]);
+        console.log(valueTargetList);
         // confronto dei due array convertiti in stringa
         // se sono uguali, l'elemento fara parte degli elementi di objTargets
-        if (valueTargetList.join() === valueTargetQuery.join()) {
+        if (valueTargetList.join().toLowerCase() === valueTargetQuery.join().toLowerCase()) {
+            console.log(" e uguale");
             return obj;
         }
     });
