@@ -40,7 +40,6 @@ app.get("/bacheca", (req, res) => {
         res.json(target);
         return;
     }
-    console.log("test");
     // se target è null, il server risponde mandando l'intero json
     res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
 });
@@ -58,32 +57,35 @@ function dataFiltered(req, list) {
     const valueTargetQuery = convertToSortedArr(query[keyTarget]);
 
     let objTargets = [];
-    if (!(query["filter"] === "heavy")) {
-        // filtraggio "leggero" --> basta che solo uno dei valori della query combaci
-        // con uno dei valori di un oggetto della list e il server lo manda
-        objTargets = list.filter((obj) => {
-            let valueTargetList = convertToSortedArr(obj[keyTarget]);
-            return valueTargetList.join().toLowerCase().includes(valueTargetQuery.join().toLowerCase());
-        });
-    }
-    // filtraggio "pesante" --> tutti i valori della query devono combaciare
-    // (anche per numero) con i valori di un oggetto della list per far si che il
-    // server lo mandi
-    else {
-        console.log("heavy");
-        // creo un array filtrando gli elementi la cui key/value combacia con la prima key/value della query
+
+    // filtraggio "leggero"
+    if (!(query["filter"] === "strict")) {
+        console.log("light filter");
         objTargets = list.filter((obj) => {
             // converto in un array ordinato la value della key target per ogni elemento di list
             let valueTargetList = convertToSortedArr(obj[keyTarget]);
-            // confronto dei due array convertiti in stringa
-            // se sono uguali, l'elemento fara parte degli elementi di objTargets
+            // se anche solo uno dei valori della query rientra tra i valori di un oggetto di list
+            // il server lo manda
+            return valueTargetList
+                .join()
+                .toLowerCase()
+                .includes(valueTargetQuery.join().toLowerCase());
+        });
+    }
+    // filtraggio "pesante" -->
+    else {
+        console.log("strict filter");
+        objTargets = list.filter((obj) => {
+            // converto in un array ordinato la value della key target per ogni elemento di list
+            let valueTargetList = convertToSortedArr(obj[keyTarget]);
+            // tutti i valori della query devono combaciare (anche per numero)
+            // valori di un oggetto della list per far si che il server lo mandi
             return (
                 valueTargetList.join().toLowerCase() ===
                 valueTargetQuery.join().toLowerCase()
             );
         });
     }
-    console.log(objTargets);
     return objTargets.length ? objTargets : null;
 }
 
