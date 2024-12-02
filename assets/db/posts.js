@@ -1,4 +1,4 @@
-const dolci = [
+const cibi = [
     {
         titolo: "Ciambellone",
         contenuto: "Descrizione del ciambellone",
@@ -31,4 +31,4 @@ const dolci = [
     },
 ];
 
-module.exports = {dolci}
+module.exports = {cibi}

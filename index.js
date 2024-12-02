@@ -11,16 +11,31 @@ const app = express();
 app.use(express.static("public"));
 const PORT = 3000;
 
-const posts = require("./public/db/posts");
+const posts = require("./assets/db/posts");
 
 app.get("/", (req, res) => {
     res.send(`<h1>Server del mio blog</h1>`);
 });
 
 app.get("/bacheca", (req, res) => {
-    console.log(posts.dolci.length);
-    res.json([{ quantità: posts.dolci.length }].concat(posts.dolci));
+    res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
 });
+
+app.get("/ciambella", (req, res) => {
+    res.send(`<img src="images/ciambellone.jpeg">`)
+})
+app.get("/cracker", (req, res) => {
+    res.send(`<img src="images/cracker_barbabietola.jpeg">`)
+})
+app.get("/pane", (req, res) => {
+    res.send(`<img src="images/pane_fritto_dolce.jpeg">`)
+})
+app.get("/pasta", (req, res) => {
+    res.send(`<img src="images/pasta_barbabietola.jpeg">`)
+})
+app.get("/torta", (req, res) => {
+    res.send(`<img src="images/torta_paesana.jpeg">`)
+})
 
 app.listen(PORT, () => {
     console.log("Server aperto");
