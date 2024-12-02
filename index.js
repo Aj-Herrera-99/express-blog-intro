@@ -5,7 +5,10 @@
     - Creiamo poi una rotta /bacheca che restituisca un oggetto json con la lista dei post e il conteggio, partendo da un array.
     - Configuriamo gli asset statici sull’applicazione in modo che si possano visualizzare le immagini associate ad ogni post.
     - Testare su postman
- */
+
+    Bonus:
+    - filtrare i dati sulla base di parametri in query string
+*/
 const express = require("express");
 const app = express();
 app.use(express.static("public"));
@@ -27,24 +30,38 @@ app.get("/", (req, res) => {
 });
 
 app.get("/bacheca", (req, res) => {
+    const ciboTitolo = req.query.titolo;
+    console.log(ciboTitolo);
+    let ciboCercato = null;
+    if (ciboTitolo) {
+        ciboCercato = posts.cibi.find((cibo) => {
+            console.log(cibo.titolo.toLowerCase());
+            return cibo.titolo.toLowerCase() == ciboTitolo.toLocaleLowerCase();
+        });
+        console.log(ciboCercato);
+        if (ciboCercato) {
+            res.json(ciboCercato);
+            return
+        }
+    }
     res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
 });
 
 app.get("/ciambella", (req, res) => {
-    res.send(`<img src="images/ciambellone.jpeg">`)
-})
+    res.send(`<img src="images/ciambellone.jpeg">`);
+});
 app.get("/cracker", (req, res) => {
-    res.send(`<img src="images/cracker_barbabietola.jpeg">`)
-})
+    res.send(`<img src="images/cracker_barbabietola.jpeg">`);
+});
 app.get("/pane", (req, res) => {
-    res.send(`<img src="images/pane_fritto_dolce.jpeg">`)
-})
+    res.send(`<img src="images/pane_fritto_dolce.jpeg">`);
+});
 app.get("/pasta", (req, res) => {
-    res.send(`<img src="images/pasta_barbabietola.jpeg">`)
-})
+    res.send(`<img src="images/pasta_barbabietola.jpeg">`);
+});
 app.get("/torta", (req, res) => {
-    res.send(`<img src="images/torta_paesana.jpeg">`)
-})
+    res.send(`<img src="images/torta_paesana.jpeg">`);
+});
 
 app.listen(PORT, () => {
     console.log("Server aperto");
