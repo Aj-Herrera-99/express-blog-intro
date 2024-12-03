@@ -13,6 +13,7 @@ const express = require("express");
 const app = express();
 app.use(express.static("public"));
 const PORT = 3000;
+const HOST = `http://localhost:${PORT}`;
 
 const posts = require("./assets/db/posts");
 
@@ -25,45 +26,66 @@ app.get("/", (req, res) => {
 });
 
 app.get("/bacheca", (req, res) => {
-    // se la query string ha un ultimo parametro "filter=strict" verra fatto un filtraggio rigoroso
-    // vedere funzione filterData
-    const dataFiltered = filterData(req, posts.cibi);
-    // se dataFiltered non è null
-    if (dataFiltered) {
-        // se dataFiltered ha elementi
-        if (dataFiltered.length) {
-            return res.json(dataFiltered);
-        }
-        // se dataFiltered è vuoto (nessun oggetto che matcha con i param della query)
-        // il server risponde mandando un json che indica not found
-        else {
-            return res.json({ 404: "not found" });
-        }
-    }
-    // se dataFiltered è null -> no query string -> ritorno il json completo
-    else {
-        return res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
-    }
+    let response = {
+        totalCount: posts.cibi.length,
+        status: "ok",
+        data: [...posts.cibi], //clone di posts.cibi
+    };
+    response = filterData(req, response, posts.cibi);
+    res.json(response);
+});
+
+app.all("*", (req, res) => {
+    res.send(`<h1>404 - Not Found</h1>`);
+});
+
+app.listen(PORT, () => {
+    console.log(
+        "Server aperto.\n",
+        `Porta: ${PORT} \n Indirizzi: 
+            ${HOST}
+            ${HOST + "/bacheca"}`
+    );
 });
 
 // * FUNCTIONS
-
-function filterData(req, list) {
+function filterData(req, response, list) {
     // prendo l'intero oggetto generato dalla query string
     const query = req.query;
     // se l'oggetto è vuoto ritorna null
-    if (!Object.keys(query).length) return null;
+    if (!Object.keys(query).length) {
+        return response;
+    }
     // prendo solo la prima key dell'oggetto query
     const keyTarget = Object.keys(query)[0];
     // se la keyTarget non è una prop di qualsiasi oggetto di list ritorna array vuoto
-    if (!Object.keys(list[0]).includes(keyTarget)) return [];
+    if (!Object.keys(list[0]).includes(keyTarget)) {
+        response = {
+            404: "Not Found",
+        };
+        return response;
+    }
+    // se il filtro è tramite id, uso una logica piu efficiente per gestire la ricerca
+    if (keyTarget === "id") {
+        response.data = list.find((obj) => {
+            return obj[keyTarget] == query[keyTarget];
+        });
+        response.totalCount = undefined;
+        console.log(response);
+        return response.data
+            ? response
+            : (response = {
+                  404: "Not Found",
+              });
+    }
+    // se il filtro non è tramite id, uso una logica diversa per gestire la ricerca
     // converto in un array ordinato la value della key target di query
     let queryValuesArr = convertToSortedArr(query[keyTarget]);
     // converto gli elementi target della query in stringhe lowercase
     queryValuesArr = convertElementsToStrLCase(queryValuesArr);
-
+    // inizializzo l'array dei dati filtrati
     let arrFiltered = [];
-    // filtraggio "rigoroso"
+    // filtraggio "rigoroso" --> ultim param di querystring "filter:strict"
     if (query["filter"] === "strict") {
         arrFiltered = list.filter((obj) => {
             // converto in un array ordinato il value della key target per ogni oggetto di list
@@ -93,12 +115,14 @@ function filterData(req, list) {
             return isIncludedSome;
         });
     }
-    return arrFiltered;
+    response.totalCount = arrFiltered.length;
+    response.data = arrFiltered;
+    return response.totalCount
+        ? response
+        : (response = {
+              404: "Not Found",
+          });
 }
-
-app.listen(PORT, () => {
-    console.log("Server aperto.", `Porta:${PORT}`);
-});
 
 function convertElementsToStrLCase(arr) {
     return arr.map((el) => el.toString().toLowerCase());
