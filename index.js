@@ -1,5 +1,5 @@
-/**
-    Creiamo il nostro blog personale e giorno dopo giorno lo potremo arricchire con nuove funzionalità sulla base di quello che impareremo.
+/** 
+    - Creiamo il nostro blog personale e giorno dopo giorno lo potremo arricchire con nuove funzionalità sulla base di quello che impareremo.
     - Creiamo il progetto base con una rotta / che ritorna un testo semplice con scritto ”Server del mio blog”
     - Creiamo un array dove inserire una lista di almeno 5 post, per ognuno indicare titolo, contenuto, immagine e tags (tags è un array di stringhe)
     - Creiamo poi una rotta /bacheca che restituisca un oggetto json con la lista dei post e il conteggio, partendo da un array.
@@ -40,11 +40,13 @@ app.get("/bacheca", (req, res) => {
             return res.json({ 404: "not found" });
         }
     }
-    // se dataFiltered è null -> no query string
+    // se dataFiltered è null -> no query string -> ritorno il json completo
     else {
         return res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
     }
 });
+
+// * FUNCTIONS
 
 function filterData(req, list) {
     // prendo l'intero oggetto generato dalla query string
@@ -61,34 +63,34 @@ function filterData(req, list) {
     queryValuesArr = convertElementsToStrLCase(queryValuesArr);
 
     let arrFiltered = [];
-    // filtraggio "leggero"
-    if (!(query["filter"] === "strict")) {
+    // filtraggio "rigoroso"
+    if (query["filter"] === "strict") {
         arrFiltered = list.filter((obj) => {
             // converto in un array ordinato il value della key target per ogni oggetto di list
             let dataTargetArr = convertToSortedArr(obj[keyTarget]);
             // converto gli elementi dell'array target in stringhe lowercase
             dataTargetArr = convertElementsToStrLCase(dataTargetArr);
-            // se anche SOLO UNO dei valori della valueTargetQuery rientra tra i valori di un oggetto
-            // di valueTargetList allora aggiungo l'oggetto nell'arrFiltered
-            let isIncludedSome = queryValuesArr.some((val) => {
-                return dataTargetArr.includes(val);
+            // se TUTTI i valori della dataTargetArr sono presenti nella queryValuesArr
+            // allora aggiungo l'oggetto nell'arrFiltered
+            let isIncludedAll = dataTargetArr.every((val) => {
+                return queryValuesArr.includes(val);
             });
-            return isIncludedSome;
+            return isIncludedAll;
         });
     }
-    // filtraggio "rigoroso"
+    // filtraggio "leggero"
     else {
         arrFiltered = list.filter((obj) => {
             // converto in un array ordinato il value della key target per ogni oggetto di list
             let dataTargetArr = convertToSortedArr(obj[keyTarget]);
             // converto gli elementi dell'array target in stringhe lowercase
             dataTargetArr = convertElementsToStrLCase(dataTargetArr);
-            // se TUTTI i valori della valueTargetList sono presenti nella valueTargetQuery
-            // allora aggiungo l'oggetto nell'arrFiltered
-            let isIncludedAll = dataTargetArr.every((val) => {
-                return queryValuesArr.includes(val);
+            // se anche SOLO UNO dei valori della queryValuesArr rientra tra i valori
+            // di dataTargetArr allora aggiungo l'oggetto nell'arrFiltered
+            let isIncludedSome = queryValuesArr.some((val) => {
+                return dataTargetArr.includes(val);
             });
-            return isIncludedAll;
+            return isIncludedSome;
         });
     }
     return arrFiltered;
@@ -98,7 +100,6 @@ app.listen(PORT, () => {
     console.log("Server aperto.", `Porta:${PORT}`);
 });
 
-// * FUNCTIONS
 function convertElementsToStrLCase(arr) {
     return arr.map((el) => el.toString().toLowerCase());
 }
