@@ -53,21 +53,25 @@ function filterData(req, list) {
     if (!Object.keys(query).length) return null;
     // prendo solo la prima key dell'oggetto query
     const keyTarget = Object.keys(query)[0];
+    // se la keyTarget non è una prop di qualsiasi oggetto di list ritorna array vuoto
+    if (!Object.keys(list[0]).includes(keyTarget)) return [];
     // converto in un array ordinato la value della key target di query
-    const valueTargetQuery = convertToSortedArr(query[keyTarget]);
+    let queryValuesArr = convertToSortedArr(query[keyTarget]);
+    // converto gli elementi target della query in stringhe lowercase
+    queryValuesArr = convertElementsToStrLCase(queryValuesArr);
 
     let arrFiltered = [];
     // filtraggio "leggero"
     if (!(query["filter"] === "strict")) {
         arrFiltered = list.filter((obj) => {
             // converto in un array ordinato il value della key target per ogni oggetto di list
-            let valueTargetList = convertToSortedArr(obj[keyTarget]);
-            // converto gli elementi dell'array target in stringhe
-            valueTargetList = convertElementsToStr(valueTargetList);
-            // se anche SOLO UNO dei valori della valueTargetQuery rientra tra i valori di un oggetto 
+            let dataTargetArr = convertToSortedArr(obj[keyTarget]);
+            // converto gli elementi dell'array target in stringhe lowercase
+            dataTargetArr = convertElementsToStrLCase(dataTargetArr);
+            // se anche SOLO UNO dei valori della valueTargetQuery rientra tra i valori di un oggetto
             // di valueTargetList allora aggiungo l'oggetto nell'arrFiltered
-            let isIncludedSome = valueTargetQuery.some((val) => {
-                return valueTargetList.includes(val);
+            let isIncludedSome = queryValuesArr.some((val) => {
+                return dataTargetArr.includes(val);
             });
             return isIncludedSome;
         });
@@ -76,13 +80,13 @@ function filterData(req, list) {
     else {
         arrFiltered = list.filter((obj) => {
             // converto in un array ordinato il value della key target per ogni oggetto di list
-            let valueTargetList = convertToSortedArr(obj[keyTarget]);
-            // converto gli elementi dell'array target in stringhe
-            valueTargetList = convertElementsToStr(valueTargetList);
+            let dataTargetArr = convertToSortedArr(obj[keyTarget]);
+            // converto gli elementi dell'array target in stringhe lowercase
+            dataTargetArr = convertElementsToStrLCase(dataTargetArr);
             // se TUTTI i valori della valueTargetList sono presenti nella valueTargetQuery
             // allora aggiungo l'oggetto nell'arrFiltered
-            let isIncludedAll = valueTargetList.every((val) => {
-                return valueTargetQuery.includes(val);
+            let isIncludedAll = dataTargetArr.every((val) => {
+                return queryValuesArr.includes(val);
             });
             return isIncludedAll;
         });
@@ -91,12 +95,12 @@ function filterData(req, list) {
 }
 
 app.listen(PORT, () => {
-    console.log("Server aperto.",`Porta:${PORT}`);
+    console.log("Server aperto.", `Porta:${PORT}`);
 });
 
 // * FUNCTIONS
-function convertElementsToStr(arr) {
-    return arr.map((el) => el.toString());
+function convertElementsToStrLCase(arr) {
+    return arr.map((el) => el.toString().toLowerCase());
 }
 
 function convertToSortedArr(element) {
