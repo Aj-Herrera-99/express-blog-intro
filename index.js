@@ -70,7 +70,8 @@ function filterData(req, response, list) {
         response.data = list.find((obj) => {
             return obj[keyTarget] == query[keyTarget];
         });
-        response.totalCount = undefined;
+        response.data = [response.data];
+        response.totalCount = response.data.length;
         console.log(response);
         return response.data
             ? response
