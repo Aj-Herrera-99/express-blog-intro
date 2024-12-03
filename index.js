@@ -21,72 +21,82 @@ app.get("/", (req, res) => {
         <h2>endpoints:</h2>
         <ul>
             <li>bacheca</li>
-            <li>ciambella</li>
-            <li>cracker</li>
-            <li>pane</li>
-            <li>pasta</li>
-            <li>torta</li>
         </ul>`);
 });
 
 app.get("/bacheca", (req, res) => {
-    // se la query string ha un ultimo parametro "filter=heavy" verra fatto un filtraggio pesante
-    // vedere funzione di queryString
-    const target = dataFiltered(req, posts.cibi);
-    // se target è un elemento non nullo
-    // il server risponde mandando un json degli elementi
-    // che corrispondono alla query string
-    if (target) {
-        res.json(target);
-        return;
+    // se la query string ha un ultimo parametro "filter=strict" verra fatto un filtraggio rigoroso
+    // vedere funzione filterData
+    const dataFiltered = filterData(req, posts.cibi);
+    // se dataFiltered non è null
+    if (dataFiltered) {
+        // se dataFiltered ha elementi
+        if (dataFiltered.length) {
+            return res.json(dataFiltered);
+        }
+        // se dataFiltered è vuoto (nessun oggetto che matcha con i param della query)
+        // il server risponde mandando un json che indica not found
+        else {
+            return res.json({ 404: "not found" });
+        }
     }
-    // se target è null, il server risponde mandando l'intero json
-    res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
+    // se dataFiltered è null -> no query string
+    else {
+        return res.json([{ quantità: posts.cibi.length }].concat(posts.cibi));
+    }
 });
 
-function dataFiltered(req, list) {
-    // prendo l'intero oggetto della query
+function filterData(req, list) {
+    // prendo l'intero oggetto generato dalla query string
     const query = req.query;
-    console.log(query);
     // se l'oggetto è vuoto ritorna null
     if (!Object.keys(query).length) return null;
-
     // prendo solo la prima key dell'oggetto query
     const keyTarget = Object.keys(query)[0];
     // converto in un array ordinato la value della key target di query
     const valueTargetQuery = convertToSortedArr(query[keyTarget]);
 
-    let objTargets = [];
-
+    let arrFiltered = [];
     // filtraggio "leggero"
     if (!(query["filter"] === "strict")) {
-        console.log("light filter");
-        objTargets = list.filter((obj) => {
-            // converto in un array ordinato la value della key target per ogni elemento di list
+        arrFiltered = list.filter((obj) => {
+            // converto in un array ordinato il value della key target per ogni oggetto di list
             let valueTargetList = convertToSortedArr(obj[keyTarget]);
-            // se anche solo uno dei valori della query rientra tra i valori di un oggetto di list
-            // il server lo manda
-            return valueTargetList
-                .join()
-                .toLowerCase()
-                .includes(valueTargetQuery.join().toLowerCase());
+            // converto gli elementi dell'array target in stringhe
+            valueTargetList = convertElementsToStr(valueTargetList);
+            // se anche SOLO UNO dei valori della valueTargetQuery rientra tra i valori di un oggetto 
+            // di valueTargetList allora aggiungo l'oggetto nell'arrFiltered
+            let isIncludedSome = valueTargetQuery.some((val) => {
+                return valueTargetList.includes(val);
+            });
+            return isIncludedSome;
         });
     }
-    // filtraggio "pesante" -->
+    // filtraggio "rigoroso"
     else {
-        console.log("strict filter");
-        objTargets = list.filter((obj) => {
-            // converto in un array ordinato la value della key target per ogni elemento di list
+        arrFiltered = list.filter((obj) => {
+            // converto in un array ordinato il value della key target per ogni oggetto di list
             let valueTargetList = convertToSortedArr(obj[keyTarget]);
-            // tutti i valori della query devono combaciare (anche per numero)
-            // valori di un oggetto della list per far si che il server lo mandi
-            return (
-                valueTargetList.join().toLowerCase() ===
-                valueTargetQuery.join().toLowerCase()
-            );
+            // converto gli elementi dell'array target in stringhe
+            valueTargetList = convertElementsToStr(valueTargetList);
+            // se TUTTI i valori della valueTargetList sono presenti nella valueTargetQuery
+            // allora aggiungo l'oggetto nell'arrFiltered
+            let isIncludedAll = valueTargetList.every((val) => {
+                return valueTargetQuery.includes(val);
+            });
+            return isIncludedAll;
         });
     }
-    return objTargets.length ? objTargets : null;
+    return arrFiltered;
+}
+
+app.listen(PORT, () => {
+    console.log("Server aperto.",`Porta:${PORT}`);
+});
+
+// * FUNCTIONS
+function convertElementsToStr(arr) {
+    return arr.map((el) => el.toString());
 }
 
 function convertToSortedArr(element) {
@@ -94,23 +104,3 @@ function convertToSortedArr(element) {
     // NB: che sia primitivo o un array, il ritorno è cmq un array ordinato
     return [].concat(element).sort();
 }
-
-app.get("/ciambella", (req, res) => {
-    res.send(`<img src="images/ciambellone.jpeg">`);
-});
-app.get("/cracker", (req, res) => {
-    res.send(`<img src="images/cracker_barbabietola.jpeg">`);
-});
-app.get("/pane", (req, res) => {
-    res.send(`<img src="images/pane_fritto_dolce.jpeg">`);
-});
-app.get("/pasta", (req, res) => {
-    res.send(`<img src="images/pasta_barbabietola.jpeg">`);
-});
-app.get("/torta", (req, res) => {
-    res.send(`<img src="images/torta_paesana.jpeg">`);
-});
-
-app.listen(PORT, () => {
-    console.log("Server aperto");
-});
